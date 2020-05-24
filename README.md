@@ -16,7 +16,7 @@ python FileSync/
 ```
 - As a script:
 ```
-python FileSync/__init__.py
+python FileSync/__main__.py
 ```
 
 ## Optional Parameters
