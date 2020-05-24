@@ -61,9 +61,13 @@ class FileBackup:
 
 # Scans the source directory for changes (by checksum) and syncs files to destination directories.
 class FileChecker:
-    def __init__(self, config, multi, hash_algo, benchmark, scan_interval, debug=False):
+    def __init__(self, config, multi, batch_size, hash_algo, benchmark, scan_interval, debug=False):
         self.config = config
         self.debug = debug
+        if batch_size == -1:
+            self.batch_size = self.config[C_MAIN_SETTINGS][P_BATCH_SIZE]
+        else:
+            self.batch_size = batch_size
         self.multi = multi
         self.hash = hash_algo
         # Reports an error if an unsupported hash algorithm is used by the end-user.
@@ -228,7 +232,7 @@ class FileChecker:
                 continue
 
             for i, file in enumerate(file_names):
-                if i % int(self.config[C_MAIN_SETTINGS][P_BATCH_SIZE]) == 0 and i != 0:
+                if i % int(self.batch_size) == 0 and i != 0:
                     print(f"Batch {batch_counter} created.")
                     batch_groups.append(batch)
                     batch = []

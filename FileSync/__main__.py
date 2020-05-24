@@ -18,6 +18,8 @@ if __name__ == "__main__":
     parser.add_argument('--hash', dest='hash_algorithm', default='sha256',
                         help='Sets the hashing algorithm to use for checksums (recommended - sha256)\n'
                              'Supported hashing algorithms: [md5, sha1, sha224, sha256, sha384, sha512]')
+    parser.add_argument('--batch-size', dest='batch_size', default=-1, help='Sets the batch size for multi-core processing, if enabled (recommended - 100+ for large quantities of data)')
+
     args = parser.parse_args()
     config = configparser.ConfigParser()
     config.read('settings.ini')
@@ -32,4 +34,4 @@ if __name__ == "__main__":
         if not os.path.isdir(target):
             print(f"Encountered a directory error in the settings.ini file. Please make sure the {P_DEST_DIR} is a valid directory.")
             exit(-1)
-    checker = FileChecker(config=config, debug=args.debug_feature, hash_algo=args.hash_algorithm, benchmark=args.bench_feature, multi=args.multi_feature, scan_interval=int(args.scan_interval))
+    checker = FileChecker(config=config, debug=args.debug_feature, batch_size=args.batch_size, hash_algo=args.hash_algorithm, benchmark=args.bench_feature, multi=args.multi_feature, scan_interval=int(args.scan_interval))
