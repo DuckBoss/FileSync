@@ -45,7 +45,7 @@ class FileBackup:
         except FileExistsError:
             if self.debug:
                 print(f"Directory already exists: {target_src}")
-        # Copies the files with respect to the folder heirarchy.
+        # Copies the files with respect to the folder hierarchy.
         try:
             shutil.copytree(file_src, full_target_src)
         except OSError as e:
