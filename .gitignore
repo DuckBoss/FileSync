@@ -6,6 +6,7 @@ __pycache__/
 # Custom
 *.idea
 .idea/
+test/
 
 # C extensions
 *.so
