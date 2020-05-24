@@ -29,4 +29,4 @@ python FileSync/__init__.py
 ```
 
 ## TODO
-- Add SFTP support to allow file syncing across a networked computer.
+- Add SFTP support to allow file syncing across a networked computer (or multiple computers in the network).
