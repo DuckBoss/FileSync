@@ -31,5 +31,8 @@ python FileSync/__main__.py
         Supported hashing algorithms: [md5, sha1, sha224, sha256, sha384, sha512]
 ```
 
+## Requirements
+- Python 3.7+
+
 ## TODO
 - Add SFTP support to allow file syncing across a networked computer (or multiple computers in the network).
