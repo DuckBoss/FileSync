@@ -1,0 +1,281 @@
+import hashlib
+import shutil
+import errno
+import multiprocessing
+from os import makedirs, walk
+from pathlib import Path
+from time import sleep, time
+from resources.strings import *
+
+
+# Resolves hash algorithm provided by the end-user.
+class HashResolver:
+    def __init__(self, debug=False):
+        self.debug = debug
+
+    # Resolves the hash algorithm given by the end-user and returns the hash object.
+    @staticmethod
+    def hash_classify(given_hash: str):
+        if given_hash.lower() == H_SHA_256:
+            return hashlib.sha256()
+        if given_hash.lower() == H_SHA_224:
+            return hashlib.sha224()
+        if given_hash.lower() == H_SHA_384:
+            return hashlib.sha3_384()
+        if given_hash.lower() == H_SHA_512:
+            return hashlib.sha512()
+        elif given_hash.lower() == H_MD5:
+            return hashlib.md5()
+        elif given_hash.lower() == H_SHA_1:
+            return hashlib.sha1()
+        else:
+            return None
+
+
+# Handles file copying and directory creation.
+class FileBackup:
+    def __init__(self, debug=False):
+        self.debug = debug
+
+    # Copies files from a source file path to a destination file path, maintaining sub-folder hierarchy.
+    def copy_file(self, file_src, target_src, full_target_src):
+        # Makes required sub-directories as required by the source path.
+        try:
+            makedirs(target_src)
+        except FileExistsError:
+            if self.debug:
+                print(f"Directory already exists: {target_src}")
+        # Copies the files with respect to the folder heirarchy.
+        try:
+            shutil.copytree(file_src, full_target_src)
+        except OSError as e:
+            # If the item being copied is not a directory, copy as a file.
+            if e.errno == errno.ENOTDIR:
+                shutil.copy(file_src, full_target_src)
+            # Reports file read/write permission errors.
+            elif e.errno == errno.EPERM:
+                print(f"Encountered a file permission error while copying files/directories:\n{e}")
+            else:
+                print(f"Encountered an error while copying files/directories:\n{e}")
+
+
+# Scans the source directory for changes (by checksum) and syncs files to destination directories.
+class FileChecker:
+    def __init__(self, config, multi, hash_algo, benchmark, scan_interval, debug=False):
+        self.config = config
+        self.debug = debug
+        self.multi = multi
+        self.hash = hash_algo
+        # Reports an error if an unsupported hash algorithm is used by the end-user.
+        if HashResolver.hash_classify(self.hash) is None:
+            print(f"Encountered an error while resolving the hash algorithm type: {self.hash}\nPlease use a supported hash.")
+            return
+        self.benchmark = benchmark
+        self.scan_interval = scan_interval
+        self.hasher = None
+        self.hash_resolver = HashResolver(debug=self.debug)
+        self.copier = FileBackup(debug=self.debug)
+        self.hash_dict = {}
+
+        self.live_scan()
+
+    def live_scan(self):
+        print("Scanning initialized...")
+        if self.multi:
+            print("Initializing as a multi-core process...")
+        while True:
+            start_time = time()
+            if self.multi:
+                if self.scan_directory_multi():
+                    if self.debug:
+                        print(f"File hash dictionary:\n{self.hash_dict}")
+                else:
+                    if self.debug:
+                        print('...')
+            else:
+                if self.scan_directory_single():
+                    if self.debug:
+                        print(f"File hash dictionary:\n{self.hash_dict}")
+                else:
+                    if self.debug:
+                        print('...')
+            end_time = time() - start_time
+            if self.benchmark:
+                print(f"Directory Scan Benchmark: {end_time:.2f}s")
+                print("...")
+            sleep(self.scan_interval)
+
+    def check_file_multi(self, file, file_hashes, debug) -> bool:
+        self.hasher = HashResolver.hash_classify(self.hash)
+        with open(file, 'rb') as cur_file:
+            buffer = cur_file.read(1024)
+            try:
+                if self.hasher is not None:
+                    self.hasher.update(buffer)
+                else:
+                    return False
+            except RuntimeError as e:
+                print(f"Encountered error while hashing:\n{e}")
+                return False
+
+            while len(buffer) > 0:
+                buffer = cur_file.read(1024)
+                try:
+                    if self.hasher is not None:
+                        self.hasher.update(buffer)
+                    else:
+                        return False
+                except RuntimeError as e:
+                    print(f"Encountered error while hashing:\n{e}")
+                    return False
+
+        cur_hash = self.hasher.hexdigest()
+        try:
+            if file_hashes[file.as_posix()] != cur_hash:
+                file_hashes[file.as_posix()] = cur_hash
+                if debug:
+                    print(f"Changes detected - {file}")
+                return True
+        except KeyError:
+            if debug:
+                print(f"Key does not exist, creating now: [{file.as_posix()}]")
+            file_hashes[file.as_posix()] = cur_hash
+            return True
+        del self.hasher
+        return False
+
+    def check_file_single(self, file) -> bool:
+        self.hasher = HashResolver.hash_classify(self.hash)
+        with open(file, 'rb') as cur_file:
+            buffer = cur_file.read(1024)
+            try:
+                if self.hasher is not None:
+                    self.hasher.update(buffer)
+                else:
+                    return False
+            except RuntimeError as e:
+                print(f"Encountered error while hashing:\n{e}")
+                return False
+
+            while len(buffer) > 0:
+                buffer = cur_file.read(1024)
+                try:
+                    if self.hasher is not None:
+                        self.hasher.update(buffer)
+                    else:
+                        return False
+                except RuntimeError as e:
+                    print(f"Encountered error while hashing:\n{e}")
+                    return False
+
+        cur_hash = self.hasher.hexdigest()
+        try:
+            if self.hash_dict[file.as_posix()] != cur_hash:
+                self.hash_dict[file.as_posix()] = cur_hash
+                if self.debug:
+                    print(f"Changes detected - {file}")
+                return True
+        except KeyError:
+            if self.debug:
+                print(f"Key does not exist, creating now: [{file.as_posix()}]")
+            self.hash_dict[file.as_posix()] = cur_hash
+            return True
+        del self.hasher
+        return False
+
+    def file_worker(self, dir_path, file, proc_num, return_dict, file_hashes, debug):
+        change_detected = False
+        if self.check_file_multi(Path(dir_path, file), file_hashes, debug):
+            change_detected = True
+            parent_dir = dir_path.rsplit('/', 1)
+            if len(parent_dir) == 0:
+                parent_dir = dir_path.rsplit('\\', 1)
+            parent_dir = parent_dir[1]
+            target_paths = ([x.strip() for x in self.config[C_MAIN_SETTINGS][P_DEST_DIR].split(',')])
+            for target in target_paths:
+                target_path = Path(target, parent_dir)
+                full_target = Path(target, Path(parent_dir, file))
+                self.copier.copy_file(Path(dir_path, file), target_path, full_target)
+        return_dict[proc_num] = change_detected
+
+    def scan_directory_multi(self) -> bool:
+        change_detected = False
+        jobs = []
+        job_manager = multiprocessing.Manager()
+        return_dict = job_manager.dict()
+        file_hashes = job_manager.dict()
+        ignore_dir_list = ([x.strip() for x in self.config[C_MAIN_SETTINGS][P_DIR_IGNORE].split(',')])
+        ignore_file_list = ([x.strip() for x in self.config[C_MAIN_SETTINGS][P_FILE_IGNORE].split(',')])
+        src_dir = self.config[C_MAIN_SETTINGS][P_SRC_DIR]
+        for file_hash in self.hash_dict.keys():
+            file_hashes[file_hash] = self.hash_dict[file_hash]
+        for (dir_path, dir_names, file_names) in walk(src_dir):
+            if dir_path.split('\\')[-1] in ignore_dir_list:
+                if self.debug:
+                    print(f"Ignoring directory: {dir_path}")
+                continue
+            elif dir_path.split('/')[-1] in ignore_dir_list:
+                if self.debug:
+                    print(f"Ignoring directory: {dir_path}")
+                continue
+            for i, file in enumerate(file_names):
+                start_time = time()
+                if file in ignore_file_list:
+                    if self.debug:
+                        print(f"Ignoring file: {file}")
+                    continue
+                process = multiprocessing.Process(
+                    target=self.file_worker,
+                    args=(dir_path, file, len(jobs) + 1, return_dict, file_hashes, self.debug)
+                )
+                jobs.append(process)
+                process.start()
+                end_time = time() - start_time
+                if self.benchmark:
+                    print(f"File Scan Benchmark: {end_time:.2f}s")
+        for job in jobs:
+            job.join()
+        del jobs, job_manager
+        self.hash_dict = file_hashes
+        for change in return_dict:
+            if not change:
+                change_detected = True
+                break
+
+        return change_detected
+
+    def scan_directory_single(self) -> bool:
+        change_detected = False
+        ignore_dir_list = ([x.strip() for x in self.config[C_MAIN_SETTINGS][P_DIR_IGNORE].split(',')])
+        ignore_file_list = ([x.strip() for x in self.config[C_MAIN_SETTINGS][P_FILE_IGNORE].split(',')])
+        src_dir = self.config[C_MAIN_SETTINGS][P_SRC_DIR]
+        for (dir_path, dir_names, file_names) in walk(src_dir):
+            if dir_path.split('\\')[-1] in ignore_dir_list:
+                if self.debug:
+                    print(f"Ignoring directory: {dir_path}")
+                continue
+            elif dir_path.split('/')[-1] in ignore_dir_list:
+                if self.debug:
+                    print(f"Ignoring directory: {dir_path}")
+                continue
+            for i, file in enumerate(file_names):
+                start_time = time()
+                if file in ignore_file_list:
+                    if self.debug:
+                        print(f"Ignoring file: {file}")
+                    continue
+                if self.check_file_single(Path(dir_path, file)):
+                    change_detected = True
+                    parent_dir = dir_path.rsplit('/', 1)
+                    if len(parent_dir) == 0:
+                        parent_dir = dir_path.rsplit('\\', 1)
+                    parent_dir = parent_dir[1]
+                    target_paths = ([x.strip() for x in self.config[C_MAIN_SETTINGS][P_DEST_DIR].split(',')])
+                    for target in target_paths:
+                        target_path = Path(target, parent_dir)
+                        full_target = Path(target, Path(parent_dir, file))
+                        self.copier.copy_file(Path(dir_path, file), target_path, full_target)
+                end_time = time() - start_time
+                if self.benchmark:
+                    print(f"File Scan Benchmark: {end_time:.2f}s")
+        return change_detected
