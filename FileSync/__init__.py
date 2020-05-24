@@ -14,7 +14,7 @@ if __name__ == "__main__":
     parser.add_argument('--debug', dest='debug_feature', action='store_true', default=False, help='Enables debug print messages')
     parser.add_argument('--benchmark', dest='bench_feature', action='store_true', default=False, help='Enables benchmarking file/directory processes')
     parser.add_argument('--multi', dest='multi_feature', action='store_true', default=False, help='Enables multi-core processing (not recommended for small directories)')
-    parser.add_argument('--scan-interval', dest='scan_interval', default=5, help='Sets the time interval between directory scans (recommended - 2-5s)')
+    parser.add_argument('--scan-interval', dest='scan_interval', default=5, help='Sets the time interval in seconds between directory scans (recommended - 2-5s)')
     parser.add_argument('--hash', dest='hash_algorithm', default='sha256',
                         help='Sets the hashing algorithm to use for checksums (recommended - sha256)\n'
                              'Supported hashing algorithms: [md5, sha1, sha224, sha256, sha384, sha512]')
