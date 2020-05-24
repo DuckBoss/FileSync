@@ -23,7 +23,7 @@ python FileSync/__init__.py
 --debug: Enables debug print messages.
 --benchmark: Enables benchmarking file/directory processes.
 --multi: Enables multi-core processing (not recommended for small directories).
---scan-interval: Sets the time interval between directory scans (recommended - 2-5s)
+--scan-interval: Sets the time interval in seconds between directory scans (recommended - 2-5s)
 --hash: Sets the hashing algorithm to use for checksums (recommended - sha256).
         Supported hashing algorithms: [md5, sha1, sha224, sha256, sha384, sha512]
 ```
