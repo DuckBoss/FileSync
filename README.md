@@ -1,10 +1,20 @@
 # FileSync
-A directory/file syncing program with multi-core support
+A directory/file syncing program with multi-core support.
 
+## Features
+- Sync directories/files to other directories
+- Sync to multiple directories (mirrors source files to multiple directories)
+- Optional multi-core support
+- Support for md5, sha1, sha224, sha256, sha384, sha512
 
 ## Usage
+- As a module:
 ```
 python FileSync/
+```
+- As a script:
+```
+python FileSync/__init__.py
 ```
 
 ## Optional Parameters
