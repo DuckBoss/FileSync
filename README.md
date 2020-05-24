@@ -27,3 +27,6 @@ python FileSync/__init__.py
 --hash: Sets the hashing algorithm to use for checksums (recommended - sha256).
         Supported hashing algorithms: [md5, sha1, sha224, sha256, sha384, sha512]
 ```
+
+## TODO
+- Add SFTP support to allow file syncing across a networked computer.
