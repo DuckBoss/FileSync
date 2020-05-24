@@ -25,9 +25,9 @@ python FileSync/__main__.py
 --debug: Enables debug print messages.
 --benchmark: Enables benchmarking file/directory processes.
 --multi: Enables multi-core processing (not recommended for small directories).
---batch-size: Sets the batch size for multi-core processing, if enabled (recommended - 100+ for large quantities of data)
---scan-interval: Sets the time interval in seconds between directory scans (recommended - 2-5s)
---hash: Sets the hashing algorithm to use for checksums (recommended - sha256).
+--batch-size <int>: Sets the batch size for multi-core processing, if enabled (recommended - 100+ for large quantities of data)
+--scan-interval <int>: Sets the time interval in seconds between directory scans (recommended - 2-5s)
+--hash <algorithm>: Sets the hashing algorithm to use for checksums (recommended - sha256).
         Supported hashing algorithms: [md5, sha1, sha224, sha256, sha384, sha512]
 ```
 
