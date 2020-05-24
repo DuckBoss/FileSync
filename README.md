@@ -23,7 +23,9 @@ python FileSync/__main__.py
 ```
 --h/--help: Displays all the available commands to the user.
 --debug: Enables debug print messages.
+--quiet: Suppresses all standard output messages. This is preferable for a headless environment.
 --benchmark: Enables benchmarking file/directory processes.
+--no-live-scan: Disables live scanning for changes in the directories which makes the program only sync once.
 --multi: Enables multi-core processing (not recommended for small directories).
 --batch-size <int>: Sets the batch size for multi-core processing, if enabled (recommended - 100+ for large quantities of data)
 --scan-interval <int>: Sets the time interval in seconds between directory scans (recommended - 2-5s)
