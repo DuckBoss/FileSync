@@ -3,6 +3,7 @@ A directory/file syncing program with multi-core support.
 
 ## Features
 - Sync directories/files to other directories
+- Live scans to detect changes in files to automatically re-sync
 - Sync to multiple directories (mirrors source files to multiple directories)
 - Optional multi-core support
 - Support for md5, sha1, sha224, sha256, sha384, sha512
