@@ -9,6 +9,7 @@ A directory/file syncing program with multi-core support.
 - Support for md5, sha1, sha224, sha256, sha384, sha512 checksums
 
 ## Usage
+- *Please make sure to modify the settings.ini file in the program's root directory to adjust it to your specifications.*
 - As a module:
 ```
 python FileSync/
