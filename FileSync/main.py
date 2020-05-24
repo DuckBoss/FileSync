@@ -61,9 +61,11 @@ class FileBackup:
 
 # Scans the source directory for changes (by checksum) and syncs files to destination directories.
 class FileChecker:
-    def __init__(self, config, multi, batch_size, hash_algo, benchmark, scan_interval, debug=False):
+    def __init__(self, config, multi, no_live_scan, batch_size, hash_algo, benchmark, scan_interval, debug=False, quiet=False):
         self.config = config
         self.debug = debug
+        self.no_live_scan = no_live_scan
+        self.quiet = quiet
         if batch_size == -1:
             self.batch_size = self.config[C_MAIN_SETTINGS][P_BATCH_SIZE]
         else:
@@ -84,11 +86,14 @@ class FileChecker:
         self.live_scan()
 
     def live_scan(self):
-        print("Scanning initialized...")
+        if not self.quiet:
+            print("Scanning initialized...")
         if self.multi:
             print("Initializing as a multi-core process...")
         while True:
             start_time = time()
+            if not self.quiet:
+                print("Starting directory scan...")
             if self.multi:
                 if self.scan_directory_multi():
                     if self.debug:
@@ -107,6 +112,10 @@ class FileChecker:
             if self.benchmark:
                 print(f"Directory Scan Benchmark: {end_time:.2f}s")
                 print("...")
+            if not self.quiet:
+                print("Synchronization Complete.")
+            if self.no_live_scan:
+                return
             sleep(self.scan_interval)
 
     def check_file_multi(self, file, file_hashes, debug) -> bool:
@@ -242,7 +251,8 @@ class FileChecker:
             if len(batch_groups) == 0:
                 batch_groups.append(batch)
 
-            print(batch_groups)
+            if self.debug:
+                print(batch_groups)
             start_time = time()
             for batch_item in batch_groups:
                 process = multiprocessing.Process(
@@ -252,6 +262,7 @@ class FileChecker:
                 jobs.append(process)
                 process.start()
             end_time = time() - start_time
+            print(f"Batch processes complete.")
             if self.benchmark:
                 print(f"Batch Scan Benchmark: {end_time:.2f}s")
         for job in jobs:
