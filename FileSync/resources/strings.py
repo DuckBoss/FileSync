@@ -7,6 +7,7 @@ P_DIR_IGNORE = 'IgnoreDirectories'
 P_FILE_IGNORE = 'IgnoreFiles'
 P_SRC_DIR = 'SourceDirectory'
 P_DEST_DIR = 'DestinationDirectories'
+P_BATCH_SIZE = 'BatchProcessingGroupSize'
 # SUPPORTED HASHES
 H_SHA_256 = 'sha256'
 H_SHA_224 = 'sha224'

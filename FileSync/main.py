@@ -183,24 +183,32 @@ class FileChecker:
         del self.hasher
         return False
 
-    def file_worker(self, dir_path, file, proc_num, return_dict, file_hashes, debug):
+    def file_worker(self, dir_path, batch, ignore_file_list, proc_num, return_dict, file_hashes, debug):
         change_detected = False
-        if self.check_file_multi(Path(dir_path, file), file_hashes, debug):
-            change_detected = True
-            parent_dir = dir_path.rsplit('/', 1)
-            if len(parent_dir) == 0:
-                parent_dir = dir_path.rsplit('\\', 1)
-            parent_dir = parent_dir[1]
-            target_paths = ([x.strip() for x in self.config[C_MAIN_SETTINGS][P_DEST_DIR].split(',')])
-            for target in target_paths:
-                target_path = Path(target, parent_dir)
-                full_target = Path(target, Path(parent_dir, file))
-                self.copier.copy_file(Path(dir_path, file), target_path, full_target)
+        for i, file in enumerate(batch):
+            if file in ignore_file_list:
+                if self.debug:
+                    print(f"Ignoring file: {file}")
+                continue
+            if self.check_file_multi(Path(dir_path, file), file_hashes, debug):
+                change_detected = True
+                parent_dir = dir_path.rsplit('/', 1)
+                if len(parent_dir) == 0:
+                    parent_dir = dir_path.rsplit('\\', 1)
+                parent_dir = parent_dir[1]
+                target_paths = ([x.strip() for x in self.config[C_MAIN_SETTINGS][P_DEST_DIR].split(',')])
+                for target in target_paths:
+                    target_path = Path(target, parent_dir)
+                    full_target = Path(target, Path(parent_dir, file))
+                    self.copier.copy_file(Path(dir_path, file), target_path, full_target)
         return_dict[proc_num] = change_detected
 
     def scan_directory_multi(self) -> bool:
         change_detected = False
         jobs = []
+        batch_groups = []
+        batch = []
+        batch_counter = 0
         job_manager = multiprocessing.Manager()
         return_dict = job_manager.dict()
         file_hashes = job_manager.dict()
@@ -218,21 +226,30 @@ class FileChecker:
                 if self.debug:
                     print(f"Ignoring directory: {dir_path}")
                 continue
+
             for i, file in enumerate(file_names):
-                start_time = time()
-                if file in ignore_file_list:
-                    if self.debug:
-                        print(f"Ignoring file: {file}")
-                    continue
+                if i % int(self.config[C_MAIN_SETTINGS][P_BATCH_SIZE]) == 0 and i != 0:
+                    print(f"Batch {batch_counter} created.")
+                    batch_groups.append(batch)
+                    batch = []
+                    batch_counter += 1
+                else:
+                    batch.append(file)
+            if len(batch_groups) == 0:
+                batch_groups.append(batch)
+
+            print(batch_groups)
+            start_time = time()
+            for batch_item in batch_groups:
                 process = multiprocessing.Process(
                     target=self.file_worker,
-                    args=(dir_path, file, len(jobs) + 1, return_dict, file_hashes, self.debug)
+                    args=(dir_path, batch_item, ignore_file_list, len(jobs) + 1, return_dict, file_hashes, self.debug)
                 )
                 jobs.append(process)
                 process.start()
-                end_time = time() - start_time
-                if self.benchmark:
-                    print(f"File Scan Benchmark: {end_time:.2f}s")
+            end_time = time() - start_time
+            if self.benchmark:
+                print(f"Batch Scan Benchmark: {end_time:.2f}s")
         for job in jobs:
             job.join()
         del jobs, job_manager
