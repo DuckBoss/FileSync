@@ -269,11 +269,9 @@ class FileChecker:
             job.join()
         del jobs, job_manager
         self.hash_dict = file_hashes
-        for change in return_dict:
-            if not change:
-                change_detected = True
-                break
 
+        if True in return_dict.values():
+            change_detected = True
         return change_detected
 
     def scan_directory_single(self) -> bool:
