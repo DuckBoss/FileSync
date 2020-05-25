@@ -1,6 +1,8 @@
 # FileSync
 A directory/file syncing program with multi-core support.
 
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/DuckBoss/FileSync)
+
 ## Features
 - Sync directories/files to other directories
 - Live scans to detect changes in files to automatically re-sync
