@@ -17,7 +17,7 @@ if __name__ == "__main__":
     parser.add_argument('--scan-interval', dest='scan_interval', default=5, help='Sets the time interval in seconds between directory scans (recommended - 2-5s)')
     parser.add_argument('--hash', dest='hash_algorithm', default='sha256',
                         help='Sets the hashing algorithm to use for checksums (recommended - sha256)\n'
-                             'Supported hashing algorithms: [md5, sha1, sha224, sha256, sha384, sha512]')
+                             'Supported hashing algorithms: [crc32, adler32, md5, sha1, sha224, sha256, sha384, sha512]')
     parser.add_argument('--batch-size', dest='batch_size', default=-1, help='Sets the batch size for multi-core processing, if enabled (recommended - 100+ for large quantities of data)')
     parser.add_argument('--no-live-scan', dest='live_scan', action='store_true', default=False, help='Disables live scanning for changes in the directories which makes the program only sync once')
     parser.add_argument('--quiet', dest='quiet_feature', action='store_true', default=False, help='Suppresses all standard output messages. This is preferable for a headless environment')

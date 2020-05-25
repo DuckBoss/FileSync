@@ -1,7 +1,8 @@
-import hashlib
 import shutil
 import errno
 import multiprocessing
+from hashlib import sha512, sha224, sha256, sha384, sha1, md5
+from zlib import crc32, adler32
 from os import makedirs, walk
 from pathlib import Path
 from time import sleep, time
@@ -17,17 +18,17 @@ class HashResolver:
     @staticmethod
     def hash_classify(given_hash: str):
         if given_hash.lower() == H_SHA_256:
-            return hashlib.sha256()
+            return sha256()
         if given_hash.lower() == H_SHA_224:
-            return hashlib.sha224()
+            return sha224()
         if given_hash.lower() == H_SHA_384:
-            return hashlib.sha3_384()
+            return sha384()
         if given_hash.lower() == H_SHA_512:
-            return hashlib.sha512()
+            return sha512()
         elif given_hash.lower() == H_MD5:
-            return hashlib.md5()
+            return md5()
         elif given_hash.lower() == H_SHA_1:
-            return hashlib.sha1()
+            return sha1()
         else:
             return None
 
@@ -73,9 +74,10 @@ class FileChecker:
         self.multi = multi
         self.hash = hash_algo
         # Reports an error if an unsupported hash algorithm is used by the end-user.
-        if HashResolver.hash_classify(self.hash) is None:
-            print(f"Encountered an error while resolving the hash algorithm type: {self.hash}\nPlease use a supported hash.")
-            return
+        if self.hash != H_CRC_32 and self.hash != H_ADLER_32:
+            if HashResolver.hash_classify(self.hash) is None:
+                print(f"Encountered an error while resolving the hash algorithm type: {self.hash}\nPlease use a supported hash.")
+                return
         self.benchmark = benchmark
         self.scan_interval = scan_interval
         self.hasher = None
@@ -120,29 +122,50 @@ class FileChecker:
 
     def check_file_multi(self, file, file_hashes, debug) -> bool:
         self.hasher = HashResolver.hash_classify(self.hash)
+        use_crc32 = False
+        use_adler32 = False
+        if self.hash == H_CRC_32:
+            use_crc32 = True
+        if self.hash == H_ADLER_32:
+            use_adler32 = True
         with open(file, 'rb') as cur_file:
-            buffer = cur_file.read(1024)
+            buffer = cur_file.read(int(self.config[C_MAIN_SETTINGS][P_FILE_BUFFER]))
             try:
                 if self.hasher is not None:
-                    self.hasher.update(buffer)
+                    if not use_crc32 and not use_adler32:
+                        self.hasher.update(buffer)
                 else:
-                    return False
+                    if use_crc32:
+                        self.hasher = crc32(buffer, 0)
+                    elif use_adler32:
+                        self.hasher = adler32(buffer, 0)
+                    else:
+                        return False
             except RuntimeError as e:
                 print(f"Encountered error while hashing:\n{e}")
                 return False
 
             while len(buffer) > 0:
-                buffer = cur_file.read(1024)
+                buffer = cur_file.read(int(self.config[C_MAIN_SETTINGS][P_FILE_BUFFER]))
                 try:
                     if self.hasher is not None:
-                        self.hasher.update(buffer)
+                        if not use_crc32 and not use_adler32:
+                            self.hasher.update(buffer)
                     else:
-                        return False
+                        if use_crc32:
+                            self.hasher = crc32(buffer, self.hasher)
+                        elif use_adler32:
+                            self.hasher = adler32(buffer, 0)
+                        else:
+                            return False
                 except RuntimeError as e:
                     print(f"Encountered error while hashing:\n{e}")
                     return False
 
-        cur_hash = self.hasher.hexdigest()
+        if not use_crc32 and not use_adler32:
+            cur_hash = self.hasher.hexdigest()
+        else:
+            cur_hash = format(self.hasher & 0xFFFFFFF, '08x')
         try:
             if file_hashes[file.as_posix()] != cur_hash:
                 file_hashes[file.as_posix()] = cur_hash
@@ -159,29 +182,50 @@ class FileChecker:
 
     def check_file_single(self, file) -> bool:
         self.hasher = HashResolver.hash_classify(self.hash)
+        use_crc32 = False
+        use_adler32 = False
+        if self.hash == H_CRC_32:
+            use_crc32 = True
+        if self.hash == H_ADLER_32:
+            use_adler32 = True
         with open(file, 'rb') as cur_file:
-            buffer = cur_file.read(1024)
+            buffer = cur_file.read(int(self.config[C_MAIN_SETTINGS][P_FILE_BUFFER]))
             try:
                 if self.hasher is not None:
-                    self.hasher.update(buffer)
+                    if not use_crc32 and not use_adler32:
+                        self.hasher.update(buffer)
                 else:
-                    return False
+                    if use_crc32:
+                        self.hasher = crc32(buffer, 0)
+                    elif use_adler32:
+                        self.hasher = adler32(buffer, 0)
+                    else:
+                        return False
             except RuntimeError as e:
                 print(f"Encountered error while hashing:\n{e}")
                 return False
 
             while len(buffer) > 0:
-                buffer = cur_file.read(1024)
+                buffer = cur_file.read(int(self.config[C_MAIN_SETTINGS][P_FILE_BUFFER]))
                 try:
                     if self.hasher is not None:
-                        self.hasher.update(buffer)
+                        if not use_crc32 and not use_adler32:
+                            self.hasher.update(buffer)
                     else:
-                        return False
+                        if use_crc32:
+                            self.hasher = crc32(buffer, self.hasher)
+                        elif use_adler32:
+                            self.hasher = adler32(buffer, self.hasher)
+                        else:
+                            return False
                 except RuntimeError as e:
                     print(f"Encountered error while hashing:\n{e}")
                     return False
 
-        cur_hash = self.hasher.hexdigest()
+        if not use_crc32 and not use_adler32:
+            cur_hash = self.hasher.hexdigest()
+        else:
+            cur_hash = format(self.hasher & 0xFFFFFFF, '08x')
         try:
             if self.hash_dict[file.as_posix()] != cur_hash:
                 self.hash_dict[file.as_posix()] = cur_hash
