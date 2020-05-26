@@ -12,19 +12,26 @@ A directory/file syncing program with multi-core support.
 - Support for crc32, adler32, md5, sha1, sha224, sha256, sha384, sha512 checksums
 
 ## Usage
-- *Please make sure to modify the settings.ini file in the program's root directory to adjust it to your specifications.*
+1) Setup the settings.ini file
+- You can either manually create the settings.ini file based on the provided one, or generate one using the setup utility.
+#### Running the setup utility for settings.ini:
+- Run the python module with the following launch parameter. 
+```
+--setup
+```
+#### Manually setup settings.ini:
+- Open the settings.ini file provided in the repository and modify the data as needed.
+
+2) After setting up the settings.ini file, run the program:
 - As a module:
 ```
 python FileSync/
-```
-- As a script:
-```
-python FileSync/__main__.py
 ```
 
 ## Optional Parameters
 ```
 --h/--help: Displays all the available commands to the user.
+--setup: Initializes setup mode which provides an interactive settings.ini creation utility
 --debug: Enables debug print messages.
 --quiet: Suppresses all standard output messages. This is preferable for a headless environment.
 --benchmark: Enables benchmarking file/directory processes.
