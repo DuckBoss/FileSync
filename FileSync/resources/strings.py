@@ -9,6 +9,8 @@ P_SRC_DIR = 'SourceDirectory'
 P_DEST_DIR = 'DestinationDirectories'
 P_BATCH_SIZE = 'BatchProcessingGroupSize'
 P_FILE_BUFFER = 'FileReadBuffer'
+P_SERVER_IP = 'SFTPServerIP'
+P_SERVER_PORT = 'SFTPServerPort'
 # SUPPORTED HASHES
 H_SHA_256 = 'sha256'
 H_SHA_224 = 'sha224'

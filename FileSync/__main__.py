@@ -3,8 +3,8 @@ import configparser
 import os
 from sys import exit
 from pathlib import Path
-from resources.strings import *
-from main import FileChecker
+from FileSync.resources.strings import *
+from FileSync.main import FileChecker
 
 
 if __name__ == "__main__":
@@ -21,6 +21,9 @@ if __name__ == "__main__":
     parser.add_argument('--batch-size', dest='batch_size', default=-1, help='Sets the batch size for multi-core processing, if enabled (recommended - 100+ for large quantities of data)')
     parser.add_argument('--no-live-scan', dest='live_scan', action='store_true', default=False, help='Disables live scanning for changes in the directories which makes the program only sync once')
     parser.add_argument('--quiet', dest='quiet_feature', action='store_true', default=False, help='Suppresses all standard output messages. This is preferable for a headless environment')
+    parser.add_argument('--use-sftp', dest='use_sftp', action='store_true', default=False, help='Enables SFTP server connectivity (use with --username/--password command)')
+    parser.add_argument('--username', dest='sftp_user', default='', help='Sets the username for sftp server communication')
+    parser.add_argument('--password', dest='sftp_pass', default='', help='Sets the password for sftp server communication')
 
     args = parser.parse_args()
     config = configparser.ConfigParser()
@@ -33,7 +36,7 @@ if __name__ == "__main__":
         exit(-1)
     target_paths = ([x.strip() for x in config[C_MAIN_SETTINGS][P_DEST_DIR].split(',')])
     for target in target_paths:
-        if not os.path.isdir(target):
+        if not os.path.isdir(target) and not args.use_sftp:
             print(f"Encountered a directory error in the settings.ini file. Please make sure the {P_DEST_DIR} is a valid directory.")
             exit(-1)
-    checker = FileChecker(config=config, debug=args.debug_feature, quiet=args.quiet_feature, no_live_scan=args.live_scan, batch_size=args.batch_size, hash_algo=args.hash_algorithm, benchmark=args.bench_feature, multi=args.multi_feature, scan_interval=int(args.scan_interval))
+    checker = FileChecker(config=config, debug=args.debug_feature, quiet=args.quiet_feature, use_sftp=args.use_sftp, sftp_user=args.sftp_user, sftp_pass=args.sftp_pass, no_live_scan=args.live_scan, batch_size=args.batch_size, hash_algo=args.hash_algorithm, benchmark=args.bench_feature, multi=args.multi_feature, scan_interval=int(args.scan_interval))
