@@ -13,8 +13,9 @@ def ignore_dirs_setup():
             ignore_dirs_input = input('Enter a directory to ignore, or "exit" to stop entering directories:\n')
             if len(ignore_dirs_input) == 0:
                 continue
-            ignore_dirs_list.append(ignore_dirs_input)
-            print(f'Added ignore directory: {ignore_dirs_input}')
+            if ignore_dirs_input != 'exit':
+                ignore_dirs_list.append(ignore_dirs_input)
+                print(f'Added ignore directory: {ignore_dirs_input}')
     else:
         print('No ignore directories have been added.')
     return ignore_dirs_list
@@ -31,8 +32,9 @@ def ignore_files_setup():
             ignore_dirs_input = input('Enter a file to ignore, or "exit" to stop entering files:\n')
             if len(ignore_dirs_input) == 0:
                 continue
-            ignore_files_list.append(ignore_dirs_input)
-            print(f'Added ignore file: {ignore_dirs_input}')
+            if ignore_dirs_input != 'exit':
+                ignore_files_list.append(ignore_dirs_input)
+                print(f'Added ignore file: {ignore_dirs_input}')
     else:
         print('No ignore files have been added.')
     return ignore_files_list
