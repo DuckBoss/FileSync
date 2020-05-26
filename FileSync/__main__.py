@@ -5,6 +5,7 @@ from sys import exit
 from pathlib import Path
 from FileSync.resources.strings import *
 from FileSync.main import FileChecker
+from FileSync.setup_utility import setup_settings
 
 
 if __name__ == "__main__":
@@ -24,8 +25,13 @@ if __name__ == "__main__":
     parser.add_argument('--use-sftp', dest='use_sftp', action='store_true', default=False, help='Enables SFTP server connectivity (use with --username/--password command)')
     parser.add_argument('--username', dest='sftp_user', default='', help='Sets the username for sftp server communication')
     parser.add_argument('--password', dest='sftp_pass', default='', help='Sets the password for sftp server communication')
+    parser.add_argument('--setup', dest='setup_feature', action='store_true', default=False, help='Initializes setup mode which provides an interactive settings.ini creation utility')
 
     args = parser.parse_args()
+    if args.setup_feature:
+        setup_settings()
+        exit(0)
+
     config = configparser.ConfigParser()
     config.read('settings.ini')
     if config is None or not os.path.isfile(Path(os.getcwd(), 'settings.ini')):
