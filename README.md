@@ -13,7 +13,7 @@ A directory/file syncing program with multi-core support.
 
 ## Usage
 ---
-### Step 1) Setup the settings.ini file
+#### Step 1) Setup the settings.ini file
 You can either manually create the settings.ini file based on the provided one, or generate one using the setup utility.<br>
 1. **Running the setup utility for settings.ini:**<br>
 Run the python module with the following launch parameter:  
@@ -21,7 +21,7 @@ Run the python module with the following launch parameter:
 2. **Manually setup settings.ini:**<br>
 Open the settings.ini file provided in the repository and modify the data as needed.
 ---
-### Step 2) After setting up the settings.ini file, run the program:
+#### Step 2) After setting up the settings.ini file, run the program:
 - As a module: 
 `python FileSync/`
 ---
