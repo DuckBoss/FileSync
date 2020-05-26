@@ -20,7 +20,7 @@ Run the python module with the following launch parameter:
 `--setup`
 2. **Manually setup settings.ini:**<br>
 Open the settings.ini file provided in the repository and modify the data as needed.
----
+
 #### Step 2) After setting up the settings.ini file, run the program:
 - As a module: 
 `python FileSync/`
