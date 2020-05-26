@@ -1,6 +1,6 @@
 import argparse
 import configparser
-import os
+from os import getcwd, path
 from sys import exit
 from pathlib import Path
 from FileSync.resources.strings import *
@@ -34,15 +34,15 @@ if __name__ == "__main__":
 
     config = configparser.ConfigParser()
     config.read('settings.ini')
-    if config is None or not os.path.isfile(Path(os.getcwd(), 'settings.ini')):
+    if config is None or not path.isfile(Path(getcwd(), 'settings.ini')):
         print("Encountered an error with the settings.ini file. Please make sure the file exists in the root directory of the program.")
         exit(-1)
-    if not os.path.isdir(config[C_MAIN_SETTINGS][P_SRC_DIR]):
+    if not path.isdir(config[C_MAIN_SETTINGS][P_SRC_DIR]):
         print(f"Encountered a directory error in the settings.ini file. Please make sure the {P_SRC_DIR} is a valid directory.")
         exit(-1)
     target_paths = ([x.strip() for x in config[C_MAIN_SETTINGS][P_DEST_DIR].split(',')])
     for target in target_paths:
-        if not os.path.isdir(target) and not args.use_sftp:
+        if not path.isdir(target) and not args.use_sftp:
             print(f"Encountered a directory error in the settings.ini file. Please make sure the {P_DEST_DIR} is a valid directory.")
             exit(-1)
     checker = FileChecker(config=config, debug=args.debug_feature, quiet=args.quiet_feature, use_sftp=args.use_sftp, sftp_user=args.sftp_user, sftp_pass=args.sftp_pass, no_live_scan=args.live_scan, batch_size=args.batch_size, hash_algo=args.hash_algorithm, benchmark=args.bench_feature, multi=args.multi_feature, scan_interval=int(args.scan_interval))
