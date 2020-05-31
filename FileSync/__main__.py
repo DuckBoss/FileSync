@@ -3,9 +3,9 @@ import configparser
 from os import getcwd, path
 from sys import exit
 from pathlib import Path
-from FileSync.resources.strings import *
-from FileSync.main import FileChecker
-from FileSync.setup_utility import setup_settings
+from resources.strings import *
+from main import FileChecker
+from setup_utility import setup_settings
 
 
 if __name__ == "__main__":
@@ -26,6 +26,7 @@ if __name__ == "__main__":
     parser.add_argument('--username', dest='sftp_user', default='', help='Sets the username for sftp server communication')
     parser.add_argument('--password', dest='sftp_pass', default='', help='Sets the password for sftp server communication')
     parser.add_argument('--setup', dest='setup_feature', action='store_true', default=False, help='Initializes setup mode which provides an interactive settings.ini creation utility')
+    parser.add_argument('--clear-targets', dest='clear_on_start', action='store_true', default=False, help='Clears destination directories before starting synchronizations')
 
     args = parser.parse_args()
     if args.setup_feature:
@@ -45,4 +46,4 @@ if __name__ == "__main__":
         if not path.isdir(target) and not args.use_sftp:
             print(f"Encountered a directory error in the settings.ini file. Please make sure the {P_DEST_DIR} is a valid directory.")
             exit(-1)
-    checker = FileChecker(config=config, debug=args.debug_feature, quiet=args.quiet_feature, use_sftp=args.use_sftp, sftp_user=args.sftp_user, sftp_pass=args.sftp_pass, no_live_scan=args.live_scan, batch_size=args.batch_size, hash_algo=args.hash_algorithm, benchmark=args.bench_feature, multi=args.multi_feature, scan_interval=int(args.scan_interval))
+    checker = FileChecker(config=config, debug=args.debug_feature, quiet=args.quiet_feature, clear_on_start=args.clear_on_start, use_sftp=args.use_sftp, sftp_user=args.sftp_user, sftp_pass=args.sftp_pass, no_live_scan=args.live_scan, batch_size=args.batch_size, hash_algo=args.hash_algorithm, benchmark=args.bench_feature, multi=args.multi_feature, scan_interval=int(args.scan_interval))

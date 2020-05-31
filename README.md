@@ -37,6 +37,7 @@ Open the settings.ini file provided in the repository and modify the data as nee
 --multi: Enables multi-core processing (not recommended for small directories).
 --batch-size <int>: Sets the batch size for multi-core processing, if enabled (recommended - 100+ for large quantities of data)
 --scan-interval <int>: Sets the time interval in seconds between directory scans (recommended - 2-5s)
+--clear-targets: Clears destination directories before starting synchronizations
 --hash <algorithm>: Sets the hashing algorithm to use for checksums (recommended - sha256).
         Supported hashing algorithms: [adler32, crc32, md5, sha1, sha224, sha256, sha384, sha512]
 --use-sftp: Enables SFTP server connectivity (use with --username/--password command)
